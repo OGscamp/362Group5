@@ -3,7 +3,7 @@
 | ID | 12345 |
 | ----------- | ----------- |
 | Name | NotAirBnb |
-| Description (Product Vision) | Text |
+| Description (Product Vision) | NotAirBnb empowers users to seamlessly book homes by providing a straightforward and efficient booking experience. Unlike traditional rental platforms, our system ensures a hassle-free process where users can quickly log in, view available listings, select a home, and complete payments with ease. Upon successful booking, users receive instant confirmation, enhancing trust and reliability in short-term rentals. |
 | Primary Actor | User |
 | Preconditions | User logged into the system |
 | Postconditions | User has booked a home. |
