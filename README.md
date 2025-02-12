@@ -33,4 +33,4 @@
 6. System books user under a home and sends a confirmation email.
 
 # Activity Diagram
-![Logo]
+![Logo](Group 5 UML Software.jpg)
