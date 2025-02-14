@@ -9,22 +9,26 @@
 | Postconditions | User has booked a home. |
 
 # Functional Requirments
-1. Login User: Have a login page for the user to get their credential authenticated
-2. Product Page: Display a product page to the user displaying vacant houses for rent
-3. Review Page: Contain a “cart” and a page to review user’s decisions
-4. Payment Page: Have a payment page that allows the user to input their payment information
-5. Confirmation Page: Display a confirmation page for the user that confirms the user’s purchase
-6. Allow users to post reviews: Keep a backlog of reviews for each listing
-7. Allow hosts to list properties: Let hosts have the ability to create their own listings as a permissioned user
+| #   | Feature                         | Description |
+|-----|---------------------------------|-------------|
+| 23  | Login User                      | Have a login page for the user to get their credentials authenticated |
+| 7   | Product Page                     | Display a product page to the user displaying vacant houses for rent |
+| 42  | Review Page                      | Contain a “cart” and a page to review user’s decisions |
+| 15  | Payment Page                     | Have a payment page that allows the user to input their payment information |
+| 88  | Confirmation Page                | Display a confirmation page for the user that confirms the user’s purchase |
+| 30  | Allow users to post reviews      | Keep a backlog of reviews for each listing |
+| 99  | Allow hosts to list properties   | Let hosts have the ability to create their own listings as a permissioned user |
 
 
 
 # Non-Functional Requirements
-1. Logs a user in quickly: User login should complete within 2 seconds
-2. Find available rooms quickly: Search for available rooms should return in under 3 seconds
-3. Processes payments quickly: Payment processing and confirmation should be under 5 seconds
-4. The UI should be intuitive: Make navigating the website simple and adaptable across different devices.
-5. Processing should be elastic: System can scale processing resources based on the amount of users
+| #   | Feature                          | Description |
+|-----|----------------------------------|-------------|
+| 14  | Logs a user in quickly           | User login should complete within 2 seconds |
+| 37  | Find available rooms quickly     | Search for available rooms should return in under 3 seconds |
+| 82  | Processes payments quickly       | Payment processing and confirmation should be under 5 seconds |
+| 21  | The UI should be intuitive       | Make navigating the website simple and adaptable across different devices. |
+| 56  | Processing should be elastic     | System can scale processing resources based on the number of users |
 
 
 
