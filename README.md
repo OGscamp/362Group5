@@ -22,7 +22,7 @@
 
 
 # Non-Functional Requirements
-| #   | Feature                          | Description |
+| #   | Non-Functional                   | Description |
 |-----|----------------------------------|-------------|
 | 14  | Logs a user in quickly           | User login should complete within 2 seconds |
 | 37  | Find available rooms quickly     | Search for available rooms should return in under 3 seconds |
