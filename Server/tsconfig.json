@@ -1,0 +1,24 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		//"module": "esnext",
+		"moduleResolution": "node",
+		"target": "esnext",
+		"sourceMap": true,
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"noImplicitAny": false,
+		"lib": [
+			"esnext"
+		]
+	},
+	"exclude": [
+		"node_modules",
+		"typings"
+	],
+	"filesGlob": [
+		"*/.ts",
+		"typings/main",
+		"typings/index.d.ts"
+	]
+}
