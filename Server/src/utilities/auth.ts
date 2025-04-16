@@ -1,6 +1,7 @@
 let passport = require('passport');
 import { Strategy as CustomStrategy } from 'passport-custom';
 
+// passport not getting called for atuhentication
 passport.use(new CustomStrategy(
     function(req, done) {
         if(req.cookies && req.cookies.path_authorized){

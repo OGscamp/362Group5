@@ -11,5 +11,9 @@ export class ExampleRoutes {
         .post(ExampleController.postExample);
         
         router.route('/api/example2').get(Auth.protected, ExampleController.getExample);
+
+        router.route('/api/example/:id')
+        .put(ExampleController.updateExample)
+        .delete(ExampleController.deleteExample);
     }
 }

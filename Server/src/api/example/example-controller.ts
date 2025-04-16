@@ -1,4 +1,5 @@
 import * as express from 'express';
+import { ObjectId } from 'mongodb';
 import { MongoConn } from '../../utilities/mongo-connect';
 
 export class ExampleController {
@@ -56,5 +57,55 @@ export class ExampleController {
     }
   }
 
+    // make an update function that updates a document in the example collection
+    public static async updateExample(req: express.Request, res: express.Response): Promise<void> {
+      try {
+        const { id } = req.params;
+        const updateData = req.body;
+  
+        let mongo = MongoConn.getInstance();
+        if (mongo.notAirBnbDB) {
+          const collection = mongo.notAirBnbDB.db("notairbnb").collection('example');
+          const result = await collection.updateOne(
+            { _id: new ObjectId(id) },
+            { $set: updateData }
+          );
+  
+          if (result.matchedCount === 0) {
+            return res.status(404).json({ message: 'Document not found' });
+          }
+  
+          res.status(200).json({ message: 'Document updated successfully' });
+        } else {
+          res.status(500).json({ error: 'Internal Server Error' });
+        }
+      } catch (error) {
+        console.error('Error updating example data:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    }
 
+    // make a delete function that deletes a document in the example collection
+    public static async deleteExample(req: express.Request, res: express.Response): Promise<void> {
+      try {
+        const { id } = req.params;
+  
+        let mongo = MongoConn.getInstance();
+        if (mongo.notAirBnbDB) {
+          const collection = mongo.notAirBnbDB.db("notairbnb").collection('example');
+          const result = await collection.deleteOne({ _id: new ObjectId(id) });
+  
+          if (result.deletedCount === 0) {
+            return res.status(404).json({ message: 'Document not found' });
+          }
+  
+          res.status(200).json({ message: 'Document deleted successfully' });
+        } else {
+          res.status(500).json({ error: 'Internal Server Error' });
+        }
+      } catch (error) {
+        console.error('Error deleting example data:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    }
 }
