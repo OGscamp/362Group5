@@ -2,7 +2,7 @@ import * as express from 'express';
 import { MongoConn } from '../../utilities/mongo-connect';
 
 export class LoginController {
-  static async register(req: express.Request, res: express.Response) {
+  static async register(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { username, password } = req.body;
       const mongo = MongoConn.getInstance();
@@ -10,7 +10,7 @@ export class LoginController {
 
       const existingUser = await users.findOne({ username });
       if (existingUser) {
-        return res.status(409).json({ error: 'Username already taken' });
+        res.status(409).json({ error: 'Username already taken' });
       }
 
       await users.insertOne({ username, password });
@@ -21,7 +21,7 @@ export class LoginController {
     }
   }
 
-  static async deleteUser(req: express.Request, res: express.Response) {
+  static async deleteUser(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { username } = req.body;
       const mongo = MongoConn.getInstance();
@@ -29,7 +29,7 @@ export class LoginController {
 
       const result = await users.deleteOne({ username });
       if (result.deletedCount === 0) {
-        return res.status(404).json({ error: 'User not found' });
+        res.status(404).json({ error: 'User not found' });
       }
 
       res.status(200).json({ message: 'User deleted successfully' });
@@ -39,7 +39,7 @@ export class LoginController {
     }
   }
 
-  static async updatePassword(req: express.Request, res: express.Response) {
+  static async updatePassword(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { username, newPassword } = req.body;
       const mongo = MongoConn.getInstance();
@@ -51,7 +51,7 @@ export class LoginController {
       );
 
       if (result.matchedCount === 0) {
-        return res.status(404).json({ error: 'User not found' });
+        res.status(404).json({ error: 'User not found' });
       }
 
       res.status(200).json({ message: 'Password updated' });
@@ -61,3 +61,4 @@ export class LoginController {
     }
   }
 }
+

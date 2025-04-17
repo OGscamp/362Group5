@@ -72,7 +72,8 @@ export class ExampleController {
           );
   
           if (result.matchedCount === 0) {
-            return res.status(404).json({ message: 'Document not found' });
+            res.status(404).json({ message: 'Document not found' });
+            return;
           }
   
           res.status(200).json({ message: 'Document updated successfully' });
@@ -96,7 +97,8 @@ export class ExampleController {
           const result = await collection.deleteOne({ _id: new ObjectId(id) });
   
           if (result.deletedCount === 0) {
-            return res.status(404).json({ message: 'Document not found' });
+            res.status(404).json({ message: 'Document not found' });
+            return;
           }
   
           res.status(200).json({ message: 'Document deleted successfully' });
