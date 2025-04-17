@@ -74,6 +74,13 @@ body {
   background: #e14b50;
 }
 
+button.register {
+  display: block;
+  width: 100%;
+  margin-top: 0.75rem;
+}
+
+
 .form-container {
   max-width: 400px;
   margin: 2rem auto;

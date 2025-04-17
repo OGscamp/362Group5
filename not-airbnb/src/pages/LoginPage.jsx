@@ -15,7 +15,8 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit}>
         <input type="email" required placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
         <input type="password" required placeholder="Password" value={pass} onChange={e => setPass(e.target.value)} />
-        <button type="submit" className="btn btn-primary">Log In</button>
+        <button className="btn btn-primary">Log In</button>
+        <button className="btn register">Register</button>
       </form>
     </div>
   );
