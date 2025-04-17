@@ -3,6 +3,7 @@ import * as session from 'express-session';
 
 import { ExampleRoutes } from '../api/example/example-routes';
 import { LoginRoutes } from '../api/login/login-routes';
+import { CartRoutes } from '../api/cart/cart-routes';
 import { randomUUID } from 'crypto';
 
 export class Routes { 
@@ -35,6 +36,7 @@ export class Routes {
 
         ExampleRoutes.init(router);
 		LoginRoutes.init(router);
+        CartRoutes.init(router);
 
         app.use('/', router);
     }
