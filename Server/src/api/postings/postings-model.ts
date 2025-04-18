@@ -1,7 +1,9 @@
-export interface userinfoModel {
-	username?: string,
-	listingId?: string,
-	listingName?: string,
-	listingPrice?: number,
-	listingDescription?: string,
-}
+export interface Posting {
+	id: string;               
+	userId: string;            
+	title: string;
+	description: string;
+	price: number;
+	location: string;
+  }
+  
