@@ -33,11 +33,16 @@
  
  
  # Non-Functional Requirements
- 1. Logs a user in quickly: User login should complete within 2 seconds
- 2. Find available rooms quickly: Search for available rooms should return in under 3 seconds
- 3. Processes payments quickly: Payment processing and confirmation should be under 5 seconds
- 4. The UI should be intuitive: Make navigating the website simple and adaptable across different devices.
- 5. Processing should be elastic: System can scale processing resources based on the amount of users
+ 1. Login Page Load Time: The system shall load into the User login page within 2 seconds.
+ 2. Login Response Time: The login process shall be complete within 2 seconds.
+ 3. Payment Processing Speed: The system shall complete payment processing and redirect to the Confirmation Page within 5 seconds.
+ 4. UI Responsiveness: The UI shall be responsive and correctly display on a desktop and other devices.
+ 5. Data Security: All user data, including passwords and payment information, shall be securely stored and transmitted.
+ 6. Role-Based Access Control: The system shall implement authentication and separate user and host-level privileges.
+ 7. System Availability: The system shall be available 99% of the time, excluding maintenance.
+ 8. Elastic Scalability: The system shall scale processing resources dynamically based on the number of active users to maintain performance.
+ 9. Message History: The chat system shall retain and display the last messages between a user and host, even after page reload.
+ 10. Error Handling: The system shall provide clear error messages to users when form validation fails or operations are unsuccessful.
  | #   | Feature                          | Description |
  |-----|----------------------------------|-------------|
  | 14  | Logs a user in quickly           | User login should complete within 2 seconds |
