@@ -39,6 +39,16 @@ export class LoginRoutes {
         res.status(401).json({ error: 'Not logged in' });
       }
     });
+    
+    // ✅ Logout route
+    router.post('/api/logout', (req, res) => {
+      res.clearCookie('path_authorized');
+      res.clearCookie('username');
+      res.status(200).json({ message: 'Logged out successfully' });
+    });
+
+
+
   }
 }
 

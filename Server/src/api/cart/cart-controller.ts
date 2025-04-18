@@ -1,16 +1,15 @@
 import * as express from 'express';
-import { ObjectId } from 'mongodb';
 import { MongoConn } from '../../utilities/mongo-connect';
 import { Cart, CartItem } from './cart-model';
 
 export class CartController {
   static async getCart(req: express.Request, res: express.Response): Promise<void> {
     try {
-      const { userId } = req.query;
+      const userId = (req as any).user?.username;
       const mongo = MongoConn.getInstance();
       const collection = mongo.notAirBnbDB.db("notairbnb").collection<Cart>('cart');
 
-      const cart = await collection.findOne({ userId: userId?.toString() });
+      const cart = await collection.findOne({ userId });
       res.status(200).json(cart || { userId, items: [] });
     } catch (error) {
       console.error('Error fetching cart:', error);
@@ -20,7 +19,9 @@ export class CartController {
 
   static async addToCart(req: express.Request, res: express.Response): Promise<void> {
     try {
-      const { userId, item }: { userId: string; item: CartItem } = req.body;
+      const userId = (req as any).user?.username;
+      const item: CartItem = req.body.item;
+
       const mongo = MongoConn.getInstance();
       const collection = mongo.notAirBnbDB.db("notairbnb").collection<Cart>('cart');
 
@@ -39,7 +40,9 @@ export class CartController {
 
   static async removeFromCart(req: express.Request, res: express.Response): Promise<void> {
     try {
-      const { userId, itemId }: { userId: string; itemId: string } = req.body;
+      const userId = (req as any).user?.username;
+      const itemId: string = req.body.itemId;
+
       const mongo = MongoConn.getInstance();
       const collection = mongo.notAirBnbDB.db("notairbnb").collection<Cart>('cart');
 
@@ -57,7 +60,7 @@ export class CartController {
 
   static async clearCart(req: express.Request, res: express.Response): Promise<void> {
     try {
-      const { userId }: { userId: string } = req.body;
+      const userId = (req as any).user?.username;
       const mongo = MongoConn.getInstance();
       const collection = mongo.notAirBnbDB.db("notairbnb").collection<Cart>('cart');
 
