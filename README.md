@@ -9,13 +9,17 @@
  | Postconditions | User has booked a home. |
  
  # Functional Requirments
- 1. Login User: Have a login page for the user to get their credential authenticated
- 2. Product Page: Display a product page to the user displaying vacant houses for rent
- 3. Review Page: Contain a “cart” and a page to review user’s decisions
- 4. Payment Page: Have a payment page that allows the user to input their payment information
- 5. Confirmation Page: Display a confirmation page for the user that confirms the user’s purchase
- 6. Allow users to post reviews: Keep a backlog of reviews for each listing
- 7. Allow hosts to list properties: Let hosts have the ability to create their own listings as a permissioned user
+ 1. User Login Page: The system shall load the login page, where users can enter their email and password for authentication. Upon successful authentication, users will be logged in. The page shall also include a register button for new users.
+ 2. Listing Page: The system shall display a listing page showing vacant properties. Each listing includes an image of the property, property title, price per night, and review rating. An “Add to Cart” button shall be available on each listing, allowing users to add the selected property to their cart. The page shall also include a sort feature button allowing users to sort by prices (low to high/ high to low) and review rating (highest rated first).
+ 3. Listing Details Page: The system shall display a detailed page for each property when a user selects a listing from the Listings Page. This page shall include more images, a complete property description, detailed review ratings, and host information. Users can select check-in and check-out dates and add the property to their cart from this page. The page shall also include a chat feature that allows direct contact between the hosts and the users.
+ 4. Cart Page: The system shall display a summary cart that displays the listings the user selects on the Product Page. The page shall include options to remove a selected listing and a checkout button to proceed to the Payment Page.
+ 5. Payment Page: The system shall display a page where users can securely enter their payment method and information. The page shall also include a summary of the booking details and total cost. Upon submission, the system shall process the payment, and if the payment is successful, redirect the user to the Confirmation Page.
+ 6. Confirmation Page: The system shall display a confirmation page after a successful payment. The page shall confirm the user’s booking and display the property name.
+ 7. Navigation Bar: The system shall display a navigation bar at the top of each page, containing links to Listing, Cart, Payment, and Login. The navigation bar shall be consistent across all pages and allow users to navigate between the main pages on the website.
+ 8. Contact Help Page: The system shall provide a Contact Help page where users can submit support requests. The page shall include a form that allows users to enter their email address, subject, and message. Upon submission, the system shall send a confirmation message to the users when the customer support team receives the request.
+ 9. User Review: The system shall allow users to post reviews for properties they have booked. Each review shall include a rating and an optional written comment. The system shall display submitted reviews on the corresponding Listing Details Page, maintaining a backlog of reviews for each property.
+ 10. Host Property Listing: The system shall allow hosts to create and manage their one property listings. Hosts can enter property titles, descriptions, price, available dates, and images.
+ 11. Host-User Chat: The system shall provide a messaging feature that allows users to chat with hosts. Users shall be able to initiate a conversation from the Listing Detail Page to ask questions before booking. Hosts shall be able to view and respond to messages. The chat system shall display previous messages between the users and hosts.
  | #   | Feature                         | Description |
  |-----|---------------------------------|-------------|
  | 23  | Login User                      | Have a login page for the user to get their credentials authenticated |
