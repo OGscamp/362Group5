@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  webserver:
+    build:
+      context: ./Server
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./Server:/usr/src/app
+    working_dir: /usr/src/app
+    command: >
+      sh -c "npm install && npm run build && node src/index.js"
+    depends_on:
+      - mongodb
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/notairbnb
+    networks:
+      - app-network
+
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+
+volumes:
+  mongo-data:
+
+networks:
+  app-network:

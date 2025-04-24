@@ -1,2 +1,8 @@
-node_modules/
-.vscode
+node_modules
+.DS_Store
+.tmp/
+*.log
+*.log*
+*.pem
+Server/**/*.js
+Server/**/*.js.map
