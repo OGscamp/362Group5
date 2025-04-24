@@ -1,24 +1,52 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { DataProvider } from './context/DataContext';
 import NavBar from './components/NavBar';
+import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import SearchPage from './pages/Search';
+import PropertyListing from './pages/PropertyListing';
 import ListingsPage from './pages/ListingsPage';
-import CartPage from './pages/CartPage';
-import PaymentsPage from './pages/PaymentsPage';
+import ChatPage from './pages/ChatPage';
+import ProtectedRoute from './components/ProtectedRoute';
 
-export default function App() {
+function App() {
   return (
-    <div>
-      <NavBar />
-      <div className="container">
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/listings" element={<ListingsPage />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/payments" element={<PaymentsPage />} />
-          <Route path="*" element={<LoginPage />} />
-        </Routes>
-      </div>
-    </div>
+    <Router>
+      <AuthProvider>
+        <DataProvider>
+          <div className="min-h-screen bg-gray-50">
+            <NavBar />
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/listing/:id" element={<PropertyListing />} />
+              <Route
+                path="/listings"
+                element={
+                  <ProtectedRoute>
+                    <ListingsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/chat"
+                element={
+                  <ProtectedRoute>
+                    <ChatPage />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </div>
+        </DataProvider>
+      </AuthProvider>
+    </Router>
   );
 }
+
+export default App;
