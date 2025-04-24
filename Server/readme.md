@@ -66,4 +66,16 @@ node src/index.js
 ### OR
 download docker and run "docker compose up"
 
+# how to run tests
+do docker compose up in one terminal
+cd into server
+then in another do next steps
+first do tsc
+then do npx jest
 
+
+to use ai add context of correct test file and the adjacent controller
+then add the controller and routes of the api endpoint you want to create tests for
+then do "Can you make a test file for "insert"-contoller with the same format as "insert".test.ts"
+into the ai chat
+Then just add the file to test folder and run dem tests.

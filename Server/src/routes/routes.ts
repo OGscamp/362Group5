@@ -13,7 +13,6 @@ import { randomUUID } from 'crypto';
 
 export class Routes {
   static init(app: express.Application, router: express.Router) {
-    const PORT = "3000";
     const passport = require('passport');
 
     // ✅ Enable cookie parsing BEFORE session & passport
@@ -50,6 +49,6 @@ export class Routes {
     app.use('/', router);
 
     // ✅ Start the server
-    app.listen(PORT, () => console.log(`NotAirBnb listening on port ${PORT}!`));
+  
   }
 }

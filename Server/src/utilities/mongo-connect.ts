@@ -1,4 +1,5 @@
 import { MongoClient } from "mongodb";
+import { resolve } from "path";
 
 export class MongoConn {
 
@@ -6,27 +7,43 @@ export class MongoConn {
 
     private static instance: MongoConn;
 
-    private constructor() {
+    private constructor(isTest: boolean = false) {
         if (MongoConn.instance) {
             throw new Error('Use MongoConn.getInstance instead');
         }
         MongoConn.instance = this;
 
-        this.init();
+        this.init(isTest);
     }
 
     
-    public static getInstance() {
+    public static getInstance(isTest: boolean = false): MongoConn {
         if (!MongoConn.instance) {
-            MongoConn.instance = new MongoConn();
+            MongoConn.instance = new MongoConn(isTest);
         }
         return MongoConn.instance;
     }
 
-    private async init() {
+    public async waitForDB(): Promise<Boolean> {
+        return new Promise((resolve) => {
+            let timer = setInterval(() => {
+                //check if mongo connection is established
+                if (this.notAirBnbDB) {
+                    //if mongo connection is established, clear the interval (stops the loop)
+                    clearInterval(timer);
+                    resolve(true);
+                } else {
+                    console.log("Waiting for MongoDB connection...");
+                }
+            }, 500);
+        });
+    }
+
+    private async init(isTest: boolean = false) {
         // Connection URL
         // protocol://host:port/database
-        const connectionString = "mongodb://mongodb:27017/notairbnb";
+        let connectionString = "mongodb://mongodb:27017/notairbnb";
+        if(isTest) connectionString = "mongodb://localhost:27017/notairbnb";
         const client = new MongoClient(connectionString);
 
         try {

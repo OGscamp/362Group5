@@ -25,13 +25,13 @@ export class CartController {
       const mongo = MongoConn.getInstance();
       const collection = mongo.notAirBnbDB.db("notairbnb").collection<Cart>('cart');
 
-      await collection.updateOne(
+      let result = await collection.updateOne(
         { userId },
         { $push: { items: item } },
         { upsert: true }
       );
 
-      res.status(200).json({ message: 'Item added to cart' });
+      res.status(201).json({ message: 'Item added to cart', _id: result.upsertedId });
     } catch (error) {
       console.error('Error adding to cart:', error);
       res.status(500).json({ error: 'Internal Server Error' });
@@ -46,10 +46,16 @@ export class CartController {
       const mongo = MongoConn.getInstance();
       const collection = mongo.notAirBnbDB.db("notairbnb").collection<Cart>('cart');
 
-      await collection.updateOne(
+      let result = await collection.updateOne(
         { userId },
         { $pull: { items: { id: itemId } } }
       );
+
+      // Check if the item was found and removed
+      if (result.modifiedCount === 0) {
+        res.status(404).json({ error: 'Item not found in cart' });
+        return;
+      }
 
       res.status(200).json({ message: 'Item removed from cart' });
     } catch (error) {

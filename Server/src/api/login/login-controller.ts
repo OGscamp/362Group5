@@ -11,6 +11,7 @@ export class LoginController {
       const existingUser = await users.findOne({ username });
       if (existingUser) {
         res.status(409).json({ error: 'Username already taken' });
+        return;
       }
 
       await users.insertOne({ username, password });

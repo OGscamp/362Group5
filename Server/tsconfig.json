@@ -14,7 +14,8 @@
 	},
 	"exclude": [
 		"node_modules",
-		"typings"
+		"typings",
+		"__tests__"
 	],
 	"filesGlob": [
 		"*/.ts",
