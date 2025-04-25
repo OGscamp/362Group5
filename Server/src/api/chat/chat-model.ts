@@ -1,6 +1,10 @@
+import { ObjectId } from 'mongodb';
+
 export interface ChatMessage {
-	userId: string;          // sender
-	recipientId: string;     // receiver
+	_id?: ObjectId;
+	senderId: ObjectId;
+	receiverId: ObjectId;
 	message: string;
-	timestamp: string;       // ISO string
-  }
+	timestamp: Date;
+	read: boolean;
+}
