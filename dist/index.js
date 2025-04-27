@@ -14,10 +14,10 @@ const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
 // Configure CORS
 app.use((0, cors_1.default)({
-    origin: ['http://localhost:3001', 'http://localhost:5173'],
+    origin: ['https://elaborate-yeot-7e93c3.netlify.app', 'http://localhost:5173'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 // Parse JSON bodies
 app.use(express_1.default.json());
@@ -25,6 +25,11 @@ app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 // Setup routes
 (0, routes_1.setupRoutes)(app);
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+});
 // Connect to MongoDB
 mongo_connect_1.MongoConn.getInstance().connect()
     .then(() => {

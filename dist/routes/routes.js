@@ -32,7 +32,7 @@ const mongo_1 = require("../utilities/mongo");
 const router = express_1.default.Router();
 // Configure CORS
 router.use((0, cors_1.default)({
-    origin: ['http://localhost:3001', 'http://localhost:5173'],
+    origin: ['https://elaborate-yeot-7e93c3.netlify.app', 'http://localhost:5173'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']

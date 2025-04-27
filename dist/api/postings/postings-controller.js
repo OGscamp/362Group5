@@ -18,7 +18,7 @@ class PostingController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const mongo = mongo_connect_1.MongoConn.getInstance();
-                const collection = mongo.notAirBnbDB.db("notairbnb").collection("properties");
+                const collection = mongo.notAirBnbDB.collection("properties");
                 const properties = yield collection.find({}).toArray();
                 res.status(200).json(properties);
             }
@@ -34,7 +34,7 @@ class PostingController {
             try {
                 const { id } = req.params;
                 const mongo = mongo_connect_1.MongoConn.getInstance();
-                const collection = mongo.notAirBnbDB.db("notairbnb").collection("properties");
+                const collection = mongo.notAirBnbDB.collection("properties");
                 const property = yield collection.findOne({ _id: new mongodb_1.ObjectId(id) });
                 if (!property) {
                     res.status(404).json({ error: 'Property not found' });
@@ -56,7 +56,7 @@ class PostingController {
                 const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
                 const property = Object.assign(Object.assign({}, req.body), { userId, createdAt: new Date(), updatedAt: new Date(), bookings: [], reviews: [] });
                 const mongo = mongo_connect_1.MongoConn.getInstance();
-                const collection = mongo.notAirBnbDB.db("notairbnb").collection("properties");
+                const collection = mongo.notAirBnbDB.collection("properties");
                 const result = yield collection.insertOne(property);
                 res.status(201).json(Object.assign(Object.assign({}, property), { _id: result.insertedId }));
             }
@@ -75,7 +75,7 @@ class PostingController {
                 const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
                 const updates = Object.assign(Object.assign({}, req.body), { updatedAt: new Date() });
                 const mongo = mongo_connect_1.MongoConn.getInstance();
-                const collection = mongo.notAirBnbDB.db("notairbnb").collection("properties");
+                const collection = mongo.notAirBnbDB.collection("properties");
                 const result = yield collection.findOneAndUpdate({ _id: new mongodb_1.ObjectId(id), userId }, { $set: updates }, { returnDocument: 'after' });
                 if (!result) {
                     res.status(404).json({ error: 'Property not found or not authorized' });
@@ -97,7 +97,7 @@ class PostingController {
                 const { id } = req.params;
                 const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
                 const mongo = mongo_connect_1.MongoConn.getInstance();
-                const collection = mongo.notAirBnbDB.db("notairbnb").collection("properties");
+                const collection = mongo.notAirBnbDB.collection("properties");
                 const result = yield collection.deleteOne({ _id: new mongodb_1.ObjectId(id), userId });
                 if (result.deletedCount === 0) {
                     res.status(404).json({ error: 'Property not found or not authorized' });

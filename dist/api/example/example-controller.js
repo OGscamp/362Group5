@@ -20,7 +20,7 @@ class ExampleController {
                 if (mongo.notAirBnbDB) {
                     // Perform MongoDB operations here
                     // Example: Fetch data from a collection
-                    const collection = mongo.notAirBnbDB.db("notairbnb").collection('example');
+                    const collection = mongo.notAirBnbDB.collection('example');
                     //Fetch all documents from the collection
                     // Currently, this is a placeholder for the actual data fetching logic. It just finds everything ask chat how to do this differently
                     const data = yield collection.find({}).toArray();
@@ -50,7 +50,7 @@ class ExampleController {
                 // Check if the MongoDB connection is established
                 if (mongo.notAirBnbDB) {
                     // Example: Save data to a collection
-                    const collection = mongo.notAirBnbDB.db("notairbnb").collection('example');
+                    const collection = mongo.notAirBnbDB.collection('example');
                     yield collection.insertOne(requestData);
                 }
                 res.status(201).json({ message: 'Data saved successfully', data: requestData });
@@ -69,7 +69,7 @@ class ExampleController {
                 const updateData = req.body;
                 let mongo = mongo_connect_1.MongoConn.getInstance();
                 if (mongo.notAirBnbDB) {
-                    const collection = mongo.notAirBnbDB.db("notairbnb").collection('example');
+                    const collection = mongo.notAirBnbDB.collection('example');
                     const result = yield collection.updateOne({ _id: new mongodb_1.ObjectId(id) }, { $set: updateData });
                     if (result.matchedCount === 0) {
                         res.status(404).json({ message: 'Document not found' });
@@ -94,7 +94,7 @@ class ExampleController {
                 const { id } = req.params;
                 let mongo = mongo_connect_1.MongoConn.getInstance();
                 if (mongo.notAirBnbDB) {
-                    const collection = mongo.notAirBnbDB.db("notairbnb").collection('example');
+                    const collection = mongo.notAirBnbDB.collection('example');
                     const result = yield collection.deleteOne({ _id: new mongodb_1.ObjectId(id) });
                     if (result.deletedCount === 0) {
                         res.status(404).json({ message: 'Document not found' });

@@ -47,7 +47,7 @@ exports.closeConnection = closeConnection;
 const mongodb_1 = require("mongodb");
 const dotenv = __importStar(require("dotenv"));
 dotenv.config();
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://your-production-mongodb-uri';
 const DB_NAME = process.env.DB_NAME || 'notairbnb';
 let client;
 let db;

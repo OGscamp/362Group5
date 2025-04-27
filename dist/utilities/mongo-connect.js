@@ -18,7 +18,7 @@ class MongoConn {
         this.retryCount = 0;
         this.maxRetries = 5;
         this.retryDelay = 5000; // 5 seconds
-        this.connectionString = process.env.MONGODB_URI || 'mongodb://localhost:27017/notairbnb';
+        this.connectionString = process.env.MONGODB_URI || 'mongodb+srv://your-production-mongodb-uri/notairbnb';
         console.log('Initializing MongoDB connection...');
         console.log('Using connection string:', this.connectionString.replace(/\/\/[^:]+:[^@]+@/, '//***:***@')); // Hide credentials in logs
     }

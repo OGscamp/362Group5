@@ -37,7 +37,7 @@ class ReviewController {
                     createdAt: new Date()
                 };
                 const mongo = mongo_connect_1.MongoConn.getInstance();
-                const collection = mongo.notAirBnbDB.db('notairbnb').collection('reviews');
+                const collection = mongo.notAirBnbDB.collection('reviews');
                 yield collection.insertOne(newReview);
                 res.status(201).json({ message: 'Review added', review: newReview });
             }
@@ -52,7 +52,7 @@ class ReviewController {
             try {
                 const propertyId = req.params.id;
                 const mongo = mongo_connect_1.MongoConn.getInstance();
-                const collection = mongo.notAirBnbDB.db('notairbnb').collection('reviews');
+                const collection = mongo.notAirBnbDB.collection('reviews');
                 const reviews = yield collection.find({ propertyId }).sort({ createdAt: -1 }).toArray();
                 res.status(200).json(reviews);
             }
@@ -70,7 +70,7 @@ class ReviewController {
                 const propertyId = req.params.id;
                 const { comment } = req.body;
                 const mongo = mongo_connect_1.MongoConn.getInstance();
-                const collection = mongo.notAirBnbDB.db('notairbnb').collection('reviews');
+                const collection = mongo.notAirBnbDB.collection('reviews');
                 const result = yield collection.deleteOne({ propertyId, userId, comment });
                 if (result.deletedCount === 0) {
                     res.status(404).json({ error: 'Review not found or not yours to delete' });

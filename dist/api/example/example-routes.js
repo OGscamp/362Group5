@@ -9,7 +9,7 @@ class ExampleRoutes {
         router.route('/api/example')
             .get(example_controller_1.ExampleController.getExample)
             .post(example_controller_1.ExampleController.postExample);
-        router.route('/api/example2').get(auth_1.Auth.protected, example_controller_1.ExampleController.getExample);
+        router.route('/api/example2').get(auth_1.Auth.verifyUser, example_controller_1.ExampleController.getExample);
         router.route('/api/example/:id')
             .put(example_controller_1.ExampleController.updateExample)
             .delete(example_controller_1.ExampleController.deleteExample);
