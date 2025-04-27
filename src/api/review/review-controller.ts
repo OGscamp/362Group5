@@ -38,7 +38,7 @@ export class ReviewController {
       };
 
       const mongo = MongoConn.getInstance();
-      const collection = mongo.notAirBnbDB.db('notairbnb').collection<Review>('reviews');
+      const collection = mongo.notAirBnbDB!.collection<Review>('reviews');
       await collection.insertOne(newReview);
 
       res.status(201).json({ message: 'Review added', review: newReview });
@@ -52,7 +52,7 @@ export class ReviewController {
     try {
       const propertyId = req.params.id;
       const mongo = MongoConn.getInstance();
-      const collection = mongo.notAirBnbDB.db('notairbnb').collection<Review>('reviews');
+      const collection = mongo.notAirBnbDB!.collection<Review>('reviews');
 
       const reviews = await collection.find({ propertyId }).sort({ createdAt: -1 }).toArray();
       res.status(200).json(reviews);
@@ -69,7 +69,7 @@ export class ReviewController {
       const { comment } = req.body;
 
       const mongo = MongoConn.getInstance();
-      const collection = mongo.notAirBnbDB.db('notairbnb').collection<Review>('reviews');
+      const collection = mongo.notAirBnbDB!.collection<Review>('reviews');
 
       const result = await collection.deleteOne({ propertyId, userId, comment });
 

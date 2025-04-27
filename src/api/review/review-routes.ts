@@ -7,8 +7,8 @@ export class ReviewRoutes {
     // User must be logged in to post and delete reviews
     router.route('/api/review/:id')
       .get(ReviewController.getReviews)
-      .post(Auth.protected, ReviewController.addReview)
-      .delete(Auth.protected, ReviewController.deleteReview);
+      .post(Auth.verifyUser, ReviewController.addReview)
+      .delete(Auth.verifyUser, ReviewController.deleteReview);
   }
 }
 

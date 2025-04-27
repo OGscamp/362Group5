@@ -8,7 +8,7 @@ export class PostingController {
 	static async getPostings(req: express.Request, res: express.Response): Promise<void> {
 		try {
 			const mongo = MongoConn.getInstance();
-			const collection = mongo.notAirBnbDB.db("notairbnb").collection("properties");
+			const collection = mongo.notAirBnbDB!.collection("properties");
 			
 			const properties = await collection.find({}).toArray();
 			res.status(200).json(properties);
@@ -23,7 +23,7 @@ export class PostingController {
 		try {
 			const { id } = req.params;
 			const mongo = MongoConn.getInstance();
-			const collection = mongo.notAirBnbDB.db("notairbnb").collection("properties");
+			const collection = mongo.notAirBnbDB!.collection("properties");
 			
 			const property = await collection.findOne({ _id: new ObjectId(id) });
 			if (!property) {
@@ -52,7 +52,7 @@ export class PostingController {
 			};
 
 			const mongo = MongoConn.getInstance();
-			const collection = mongo.notAirBnbDB.db("notairbnb").collection("properties");
+			const collection = mongo.notAirBnbDB!.collection("properties");
 
 			const result = await collection.insertOne(property);
 			res.status(201).json({ ...property, _id: result.insertedId });
@@ -73,7 +73,7 @@ export class PostingController {
 			};
 
 			const mongo = MongoConn.getInstance();
-			const collection = mongo.notAirBnbDB.db("notairbnb").collection("properties");
+			const collection = mongo.notAirBnbDB!.collection("properties");
 
 			const result = await collection.findOneAndUpdate(
 				{ _id: new ObjectId(id), userId },
@@ -100,7 +100,7 @@ export class PostingController {
 			const userId = (req as any).user?.id;
 
 			const mongo = MongoConn.getInstance();
-			const collection = mongo.notAirBnbDB.db("notairbnb").collection("properties");
+			const collection = mongo.notAirBnbDB!.collection("properties");
 
 			const result = await collection.deleteOne({ _id: new ObjectId(id), userId });
 

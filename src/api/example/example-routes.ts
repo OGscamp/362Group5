@@ -10,7 +10,7 @@ export class ExampleRoutes {
         .get(ExampleController.getExample)
         .post(ExampleController.postExample);
         
-        router.route('/api/example2').get(Auth.protected, ExampleController.getExample);
+        router.route('/api/example2').get(Auth.verifyUser, ExampleController.getExample);
 
         router.route('/api/example/:id')
         .put(ExampleController.updateExample)
