@@ -74,16 +74,16 @@ export class AuthController {
       // Check if user already exists
       const existingUser = await db.collection('users').findOne({ username });
       if (existingUser) {
-        res.status(400).json({ error: 'Username already exists' });
+        res.status(400).json({ success: false, error: 'Username already exists' });
         return;
       }
 
       // Create new user
       await db.collection('users').insertOne({ username, password });
-      res.status(201).json({ message: 'Account created successfully' });
+      res.status(201).json({ success: true, data: { success: true } });
     } catch (error) {
       console.error('Error registering user:', error);
-      res.status(500).json({ error: 'Failed to register' });
+      res.status(500).json({ success: false, error: 'Failed to register' });
     }
   }
 
