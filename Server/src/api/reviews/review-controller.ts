@@ -22,9 +22,9 @@ export class ReviewController {
         return;
       }
 
-      const { propertyId, rating, comment } = req.body;
+      const { propertyId, rating, comment, bookingId } = req.body;
       
-      if (!propertyId || !rating || !comment) {
+      if (!propertyId || !rating || !comment || !bookingId) {
         res.status(400).json({ error: 'Missing required fields' });
         return;
       }
@@ -39,11 +39,12 @@ export class ReviewController {
           _id: user._id
         },
         propertyId,
+        bookingId,
         body: req.body
       });
 
       // Check if user has a booking for this property
-      const bookingQuery = { 
+      const bookingQuery = {
         propertyId: propertyId,
         userId: user.username,
         status: { $in: ['accepted', 'completed'] }
@@ -65,6 +66,7 @@ export class ReviewController {
       const newReview = {
         propertyId: propertyId,
         userId: user.username,
+        bookingId: bookingId,
         rating: Number(rating),
         comment,
         createdAt: new Date(),
@@ -143,7 +145,10 @@ export class ReviewController {
       }
 
       // Check if user is authorized to delete this review
-      if (review.userId.toString() !== user._id.toString()) {
+      if (
+        review.userId.toString() !== user._id.toString() &&
+        review.userId.toString() !== user.username.toString()
+      ) {
         res.status(403).json({ error: 'Not authorized to delete this review' });
         return;
       }

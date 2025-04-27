@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { cartService } from '../services/api';
 
 const CartContext = createContext();
 
@@ -17,56 +18,81 @@ export const CartProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Load cart from localStorage on mount
+  // Load cart from backend or localStorage on mount or user change
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      setCart(JSON.parse(savedCart));
+    const loadCart = async () => {
+      setLoading(true);
+      try {
+        if (user) {
+          const data = await cartService.getCart();
+          setCart(data.items || []);
+        } else {
+          const savedCart = localStorage.getItem('cart');
+          setCart(savedCart ? JSON.parse(savedCart) : []);
+        }
+      } catch (err) {
+        setError('Failed to load cart');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadCart();
+  }, [user]);
+
+  // Save cart to localStorage for guests
+  useEffect(() => {
+    if (!user) {
+      localStorage.setItem('cart', JSON.stringify(cart));
     }
-  }, []);
+  }, [cart, user]);
 
-  // Save cart to localStorage when it changes
-  useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cart));
-  }, [cart]);
-
-  const addToCart = (property, checkIn, checkOut, guests) => {
-    const existingItem = cart.find(item => item.property._id === property._id);
-    
-    if (existingItem) {
-      setCart(cart.map(item =>
-        item.property._id === property._id
-          ? { ...item, checkIn, checkOut, guests }
-          : item
-      ));
+  const addToCart = async (property, checkIn, checkOut, guests) => {
+    const item = {
+      id: property._id,
+      title: property.title,
+      price: property.price,
+      photo: property.photos?.[0] || '',
+      location: property.location,
+    };
+    let newCart;
+    if (cart.find(i => i.id === item.id)) {
+      newCart = cart;
     } else {
-      setCart([...cart, { property, checkIn, checkOut, guests }]);
+      newCart = [...cart, item];
+    }
+    setCart(newCart);
+    if (user) {
+      try {
+        await cartService.addToCart(item);
+      } catch (err) {
+        setError('Failed to add to cart');
+      }
     }
   };
 
-  const removeFromCart = (propertyId) => {
-    setCart(cart.filter(item => item.property._id !== propertyId));
+  const removeFromCart = async (propertyId) => {
+    const newCart = cart.filter(item => item.id !== propertyId);
+    setCart(newCart);
+    if (user) {
+      try {
+        await cartService.removeFromCart(propertyId);
+      } catch (err) {
+        setError('Failed to remove from cart');
+      }
+    }
   };
 
-  const updateCartItem = (propertyId, updates) => {
-    setCart(cart.map(item =>
-      item.property._id === propertyId
-        ? { ...item, ...updates }
-        : item
-    ));
-  };
-
-  const clearCart = () => {
+  const clearCart = async () => {
     setCart([]);
-  };
-
-  const calculateTotal = () => {
-    return cart.reduce((total, item) => {
-      const checkIn = new Date(item.checkIn);
-      const checkOut = new Date(item.checkOut);
-      const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
-      return total + (item.property.price * nights);
-    }, 0);
+    if (user) {
+      try {
+        await cartService.clearCart();
+      } catch (err) {
+        setError('Failed to clear cart');
+      }
+    } else {
+      localStorage.removeItem('cart');
+    }
   };
 
   const value = {
@@ -75,9 +101,7 @@ export const CartProvider = ({ children }) => {
     error,
     addToCart,
     removeFromCart,
-    updateCartItem,
     clearCart,
-    calculateTotal,
     clearError: () => setError(null)
   };
 

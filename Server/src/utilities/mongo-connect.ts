@@ -10,7 +10,7 @@ export class MongoConn {
     private retryDelay = 5000; // 5 seconds
 
     private constructor() {
-        this.connectionString = process.env.MONGODB_URI || 'mongodb://localhost:27017/notairbnb';
+        this.connectionString = process.env.MONGODB_URI || 'mongodb+srv://your-production-mongodb-uri/notairbnb';
         console.log('Initializing MongoDB connection...');
         console.log('Using connection string:', this.connectionString.replace(/\/\/[^:]+:[^@]+@/, '//***:***@')); // Hide credentials in logs
     }

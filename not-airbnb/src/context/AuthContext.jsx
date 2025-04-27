@@ -41,13 +41,28 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const response = await authService.login({ username, password });
-      if (response.data && response.data.message === 'Login successful') {
-        setUser(response.data.user);
+      console.log('Login response in AuthContext:', response); // Debug log
+      if (response.success) {
+        if (response.token) {
+          localStorage.setItem('token', response.token);
+        }
+        if (response.user && response.user._id) {
+          localStorage.setItem('userId', response.user._id);
+        }
+        console.log('Token in localStorage:', localStorage.getItem('token'));
+        console.log('UserId in localStorage:', localStorage.getItem('userId'));
+        setUser(response.user);
+        setError(null);
         return { success: true };
       }
-      return { success: false, error: 'Invalid response from server' };
+      setError(response.error || 'Invalid credentials');
+      localStorage.removeItem('token');
+      localStorage.removeItem('userId');
+      return { success: false, error: response.error || 'Invalid credentials' };
     } catch (error) {
       setError(error.error || 'Login failed');
+      localStorage.removeItem('token');
+      localStorage.removeItem('userId');
       return { success: false, error: error.error || 'Login failed' };
     }
   };
@@ -69,11 +84,18 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       setError(null);
-      await authService.logout();
+      const response = await authService.logout();
+      localStorage.removeItem('token');
+      localStorage.removeItem('userId');
+      if (response.success) {
       setUser(null);
       return { success: true };
+      }
+      return { success: false, error: response.error || 'Failed to logout' };
     } catch (error) {
       setError(error.error || 'Logout failed');
+      localStorage.removeItem('token');
+      localStorage.removeItem('userId');
       return { success: false, error: error.error || 'Logout failed' };
     }
   };

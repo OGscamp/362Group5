@@ -167,7 +167,7 @@ const Search = () => {
               onClick={() => navigate(`/property/${property._id}`)}
             >
               <img
-                src={property.photos?.[0]?.data ? `data:${property.photos[0].contentType};base64,${property.photos[0].data}` : '/placeholder-image.jpg'}
+                src={property.photos?.[0] ? property.photos[0] : '/placeholder-image.jpg'}
                 alt={property.title || 'Property'}
                 className="w-full h-48 object-cover"
               />

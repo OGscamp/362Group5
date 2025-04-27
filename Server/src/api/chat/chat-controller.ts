@@ -4,6 +4,10 @@ import { ObjectId } from 'mongodb';
 import { Auth } from '../../utilities/auth';
 import { ChatMessage } from './chat-model';
 
+function isValidObjectId(id: any) {
+  return typeof id === 'string' && /^[a-fA-F0-9]{24}$/.test(id);
+}
+
 export class ChatController {
   static async sendMessage(req: Request, res: Response) {
     try {
@@ -32,8 +36,8 @@ export class ChatController {
       const bookings = mongo.notAirBnbDB.collection('bookings');
       const booking = await bookings.findOne({
         $or: [
-          { userId: user._id, hostId: new ObjectId(receiverId), status: 'accepted' },
-          { userId: new ObjectId(receiverId), hostId: user._id, status: 'accepted' }
+          { userId: user._id, hostId: isValidObjectId(receiverId) ? new ObjectId(receiverId) : receiverId, status: 'accepted' },
+          { userId: isValidObjectId(receiverId) ? new ObjectId(receiverId) : receiverId, hostId: user._id, status: 'accepted' }
         ]
       });
 
@@ -42,11 +46,11 @@ export class ChatController {
         return;
       }
 
-      const chat = mongo.notAirBnbDB.collection<ChatMessage>('chat');
+      const chat = mongo.notAirBnbDB.collection('chat');
       
       const newMessage: ChatMessage = {
         senderId: user._id,
-        receiverId: new ObjectId(receiverId),
+        receiverId: isValidObjectId(receiverId) ? new ObjectId(receiverId) : receiverId,
         message,
         timestamp: new Date(),
         read: false
@@ -95,8 +99,8 @@ export class ChatController {
       const bookings = mongo.notAirBnbDB.collection('bookings');
       const booking = await bookings.findOne({
         $or: [
-          { userId: user._id, hostId: new ObjectId(otherUserId), status: 'accepted' },
-          { userId: new ObjectId(otherUserId), hostId: user._id, status: 'accepted' }
+          { userId: user._id, hostId: isValidObjectId(otherUserId) ? new ObjectId(otherUserId) : otherUserId, status: 'accepted' },
+          { userId: isValidObjectId(otherUserId) ? new ObjectId(otherUserId) : otherUserId, hostId: user._id, status: 'accepted' }
         ]
       });
 
@@ -105,19 +109,19 @@ export class ChatController {
         return;
       }
 
-      const chat = mongo.notAirBnbDB.collection<ChatMessage>('chat');
+      const chat = mongo.notAirBnbDB.collection('chat');
       
       const messages = await chat.find({
         $or: [
-          { senderId: user._id, receiverId: new ObjectId(otherUserId) },
-          { senderId: new ObjectId(otherUserId), receiverId: user._id }
+          { senderId: user._id, receiverId: isValidObjectId(otherUserId) ? new ObjectId(otherUserId) : otherUserId },
+          { senderId: isValidObjectId(otherUserId) ? new ObjectId(otherUserId) : otherUserId, receiverId: user._id }
         ]
       }).sort({ timestamp: 1 }).toArray();
 
       // Mark messages as read
       await chat.updateMany(
         {
-          senderId: new ObjectId(otherUserId),
+          senderId: isValidObjectId(otherUserId) ? new ObjectId(otherUserId) : otherUserId,
           receiverId: user._id,
           read: false
         },
@@ -152,7 +156,7 @@ export class ChatController {
         return;
       }
 
-      const chat = mongo.notAirBnbDB.collection<ChatMessage>('chat');
+      const chat = mongo.notAirBnbDB.collection('chat');
       
       const count = await chat.countDocuments({
         receiverId: user._id,

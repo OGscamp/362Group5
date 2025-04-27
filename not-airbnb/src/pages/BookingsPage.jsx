@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { bookingService, propertyService, paymentService } from '../services/api';
+import { bookingService, propertyService, paymentService, mailboxService } from '../services/api';
 import { 
   CheckCircleIcon, 
   XCircleIcon, 
@@ -32,6 +32,12 @@ const BookingsPage = () => {
     cvv: '',
     cardholderName: ''
   });
+  const [showMessageForm, setShowMessageForm] = useState(false);
+  const [messageRecipient, setMessageRecipient] = useState(null);
+  const [messageSubject, setMessageSubject] = useState('');
+  const [messageBody, setMessageBody] = useState('');
+  const [messageSuccess, setMessageSuccess] = useState('');
+  const [messageError, setMessageError] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,22 +59,42 @@ const BookingsPage = () => {
           return {
             ...booking,
             property: property || null,
-            propertyTitle: property?.title || 'Unknown Property',
-            propertyLocation: property?.location || 'Location not available',
-            propertyImages: property?.images || [],
+            propertyTitle: property?.title || booking.propertyTitle || 'Unknown Property',
+            propertyLocation: property?.location || booking.propertyLocation || 'Location not available',
+            propertyImages: property?.photos || property?.images || [],
+            hostName: property?.userId || booking.hostName || 'Unknown Host',
             guestName: booking.userId === user.username ? 'You' : booking.guestName || 'Guest',
-            isHost: property?.userId === user.username
+            isHost: (property?.userId === user.username || property?.userId === user._id || booking.hostName === user.username || booking.hostName === user._id)
           };
         });
 
         // Filter bookings to show only relevant ones
         const filteredBookings = enrichedBookings.filter(booking => {
-          // Show bookings where user is either the guest or the property owner
-          return booking.userId === user.username || booking.property?.userId === user.username;
+          // Show bookings where user is either the guest or the property owner (by username or _id)
+          return (
+            booking.userId === user.username ||
+            booking.userId === user._id ||
+            booking.property?.userId === user.username ||
+            booking.property?.userId === user._id ||
+            booking.hostName === user.username ||
+            booking.hostName === user._id
+          );
         });
 
         setBookings(filteredBookings);
         setProperties(propertiesData);
+
+        // Fetch payment methods here
+        if (user) {
+          try {
+            const response = await paymentService.getPaymentMethods();
+            setPaymentMethods(response.paymentMethods || []);
+          } catch (error) {
+            console.error('Error fetching payment methods:', error);
+            toast.error('Failed to load payment methods');
+          }
+        }
+
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -79,32 +105,6 @@ const BookingsPage = () => {
 
     fetchData();
   }, [user.username]);
-
-  useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const data = await bookingService.getBookings();
-        setBookings(data);
-      } catch (error) {
-        console.error('Error fetching bookings:', error);
-      }
-    };
-
-    const fetchPaymentMethods = async () => {
-      if (user) {
-        try {
-          const response = await paymentService.getPaymentMethods();
-          setPaymentMethods(response.paymentMethods || []);
-        } catch (error) {
-          console.error('Error fetching payment methods:', error);
-          toast.error('Failed to load payment methods');
-        }
-      }
-    };
-
-    fetchBookings();
-    fetchPaymentMethods();
-  }, [user]);
 
   const handleUpdateStatus = async (bookingId, newStatus) => {
     try {
@@ -159,11 +159,43 @@ const BookingsPage = () => {
   };
 
   const handleMessage = (booking) => {
-    navigate(`/chat?propertyId=${booking.propertyId}&userId=${booking.userId}`);
+    // If current user is the guest, message the host
+    let recipient = '';
+    if (booking.userId === user._id || booking.userId === user.username) {
+      recipient = booking.property?.userId || '';
+    } else {
+      // If current user is the host, message the guest
+      recipient = booking.userId || '';
+    }
+    setMessageRecipient(recipient.toString());
+    // Set subject to property title or booking info
+    const subject = booking.propertyTitle || booking.property?.title || `Booking: ${booking._id}`;
+    setMessageSubject(subject);
+    setShowMessageForm(true);
+    setMessageBody('');
+    setMessageSuccess('');
+    setMessageError('');
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    setMessageSuccess('');
+    setMessageError('');
+    if (!messageRecipient || !messageBody) {
+      setMessageError('Recipient and message body are required');
+      return;
+    }
+    try {
+      await mailboxService.sendMessage(messageRecipient, messageSubject, messageBody);
+      setMessageSuccess('Message sent!');
+      setShowMessageForm(false);
+    } catch (err) {
+      setMessageError('Failed to send message');
+    }
   };
 
   const handleLeaveReview = (booking) => {
-    navigate(`/property/${booking.propertyId}?review=true`);
+    navigate(`/property/${booking.propertyId}?review=true&bookingId=${booking._id}`);
   };
 
   const getStatusIcon = (status) => {
@@ -437,50 +469,59 @@ const BookingsPage = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6">
-          {filteredBookings.map((booking) => (
-            <div key={booking._id} className="bg-white shadow rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  {getStatusIcon(booking.status)}
-                  <span className="text-lg font-semibold">
-                    {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                  </span>
-                </div>
-                <div className="flex space-x-2">
-                  {booking.status === 'pending' && booking.isHost && (
-                    <>
-                      <button
-                        onClick={() => handleUpdateStatus(booking._id, 'accepted')}
-                        className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
-                      >
-                        Accept
-                      </button>
-                      <button
-                        onClick={() => handleUpdateStatus(booking._id, 'denied')}
-                        className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
-                      >
-                        Deny
-                      </button>
-                    </>
-                  )}
-                  <button
-                    onClick={() => handleMessage(booking)}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 inline-flex items-center"
-                  >
-                    <ChatBubbleLeftIcon className="h-5 w-5 mr-1" />
-                    Message
-                  </button>
-                  {booking.status === 'accepted' && (
-                    <>
-                      {!booking.isHost && (
+          {filteredBookings.map((booking) => {
+            const isHost = (
+              (booking.property?.userId && (booking.property.userId === user.username || booking.property.userId === user._id)) ||
+              (booking.hostName && (booking.hostName === user.username || booking.hostName === user._id))
+            );
+            // Prefer property fields if available
+            const propertyTitle = booking.property?.title || booking.propertyTitle || 'Unknown Property';
+            const propertyLocation = booking.property?.location || booking.propertyLocation || 'Location not available';
+            const propertyImages = booking.property?.photos || booking.property?.images || booking.propertyImages || [];
+            const hostName = booking.property?.userId || booking.hostName || 'Unknown Host';
+            return (
+              <div key={booking._id} className="bg-white shadow rounded-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    {getStatusIcon(booking.status)}
+                    <span className="text-lg font-semibold">
+                      {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                    </span>
+                  </div>
+                  <div className="flex space-x-2">
+                    {booking.status === 'pending' && isHost && (
+                      <>
                         <button
-                          onClick={() => handleLeaveReview(booking)}
-                          className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 inline-flex items-center"
+                          onClick={() => handleUpdateStatus(booking._id, 'accepted')}
+                          className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
                         >
-                          <StarIcon className="h-5 w-5 mr-1" />
-                          Leave Review
+                          Accept
                         </button>
-                      )}
+                        <button
+                          onClick={() => handleUpdateStatus(booking._id, 'denied')}
+                          className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+                        >
+                          Deny
+                        </button>
+                      </>
+                    )}
+                    <button
+                      onClick={() => handleMessage(booking)}
+                      className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 inline-flex items-center"
+                    >
+                      <ChatBubbleLeftIcon className="h-5 w-5 mr-1" />
+                      Message
+                    </button>
+                    {booking.status === 'accepted' && !isHost && (
+                      <button
+                        onClick={() => handleLeaveReview(booking)}
+                        className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 inline-flex items-center"
+                      >
+                        <StarIcon className="h-5 w-5 mr-1" />
+                        Leave Review
+                      </button>
+                    )}
+                    {booking.status === 'accepted' && (
                       <button
                         onClick={() => handleDeleteBooking(booking._id)}
                         className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 inline-flex items-center"
@@ -488,50 +529,100 @@ const BookingsPage = () => {
                         <TrashIcon className="h-5 w-5 mr-1" />
                         Delete
                       </button>
-                    </>
-                  )}
+                    )}
+                  </div>
                 </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <HomeIcon className="h-5 w-5 text-gray-400" />
+                    <span className="text-gray-600">Property: {propertyTitle}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <UserIcon className="h-5 w-5 text-gray-400" />
+                    <span className="text-gray-600">Host: {hostName}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <CalendarIcon className="h-5 w-5 text-gray-400" />
+                    <span className="text-gray-600">
+                      {new Date(booking.startDate).toLocaleDateString()} - {new Date(booking.endDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-gray-600">Location: {propertyLocation}</span>
+                  </div>
+                </div>
+                {propertyImages && propertyImages.length > 0 && (
+                  <div className="mt-4">
+                    <img
+                      src={propertyImages[0]}
+                      alt={propertyTitle}
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                  </div>
+                )}
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center space-x-2">
-                  <HomeIcon className="h-5 w-5 text-gray-400" />
-                  <span className="text-gray-600">Property: {booking.propertyTitle}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <UserIcon className="h-5 w-5 text-gray-400" />
-                  <span className="text-gray-600">
-                    {booking.isHost ? 'Guest' : 'Host'}: {booking.isHost ? booking.guestName : 'Property Owner'}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CalendarIcon className="h-5 w-5 text-gray-400" />
-                  <span className="text-gray-600">
-                    {new Date(booking.startDate).toLocaleDateString()} - {new Date(booking.endDate).toLocaleDateString()}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-gray-600">Location: {booking.propertyLocation}</span>
-                </div>
-              </div>
-
-              {booking.propertyImages && booking.propertyImages.length > 0 && (
-                <div className="mt-4">
-                  <img
-                    src={booking.propertyImages[0]}
-                    alt={booking.propertyTitle}
-                    className="w-full h-48 object-cover rounded-lg"
-                  />
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
 
           {filteredBookings.length === 0 && (
             <div className="text-center py-12">
               <p className="text-gray-500">No {activeTab} bookings found</p>
             </div>
           )}
+        </div>
+      )}
+      {showMessageForm && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-semibold mb-4">Send Message</h2>
+            {messageError && <div className="text-red-500 mb-2">{messageError}</div>}
+            {messageSuccess && <div className="text-green-500 mb-2">{messageSuccess}</div>}
+            <form onSubmit={handleSendMessage} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">To</label>
+                <input
+                  type="text"
+                  value={messageRecipient || ''}
+                  disabled
+                  className="w-full px-3 py-2 border rounded-lg bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Subject</label>
+                <input
+                  type="text"
+                  value={messageSubject}
+                  onChange={(e) => setMessageSubject(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Message</label>
+                <textarea
+                  value={messageBody}
+                  onChange={(e) => setMessageBody(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  rows="5"
+                  required
+                />
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  type="submit"
+                  className="bg-rose-500 text-white px-4 py-2 rounded-lg hover:bg-rose-600"
+                >
+                  Send
+                </button>
+                <button
+                  type="button"
+                  className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400"
+                  onClick={() => setShowMessageForm(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

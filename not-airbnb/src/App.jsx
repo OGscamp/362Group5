@@ -11,9 +11,11 @@ import RegisterPage from './pages/RegisterPage';
 import SearchPage from './pages/Search';
 import PropertyListing from './pages/PropertyListing';
 import ListingsPage from './pages/ListingsPage';
-import ChatPage from './pages/ChatPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import BookingsPage from './pages/BookingsPage';
+import SupportPage from './pages/SupportPage';
+import Cart from './components/Cart';
+import MailboxPage from './pages/MailboxPage';
 
 function App() {
   return (
@@ -47,13 +49,22 @@ function App() {
                   }
                 />
                 <Route
-                  path="/chat"
+                  path="/support"
                   element={
                     <ProtectedRoute>
-                      <ChatPage />
+                      <SupportPage />
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/mailbox"
+                  element={
+                    <ProtectedRoute>
+                      <MailboxPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="/cart" element={<Cart />} />
               </Routes>
             </div>
           </CartProvider>

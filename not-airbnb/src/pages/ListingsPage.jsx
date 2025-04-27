@@ -68,23 +68,11 @@ const ListingsPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const formData = new FormData();
-      
-      // Append text fields
-      formData.append('title', newListing.title);
-      formData.append('description', newListing.description);
-      formData.append('price', newListing.price);
-      formData.append('location', newListing.location);
-      formData.append('username', user.username);
-      
-      // Append photos
-      if (newListing.photos && newListing.photos.length > 0) {
-        newListing.photos.forEach(photo => {
-          formData.append('photos', photo);
-        });
-      }
-
-      const response = await propertyService.createProperty(formData);
+      const response = await propertyService.createProperty({
+        ...newListing,
+        userId: user.username,
+        photos: newListing.photos
+      });
       if (response.success) {
         toast.success('Listing created successfully');
         setShowAddForm(false);

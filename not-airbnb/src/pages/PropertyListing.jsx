@@ -3,6 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { propertyService, bookingService, reviewService } from '../services/api';
 import { StarIcon, MapPinIcon, HomeIcon, SparklesIcon, UserIcon } from '@heroicons/react/24/solid';
+import { useCart } from '../context/CartContext';
 
 const PropertyListing = () => {
   const { id } = useParams();
@@ -24,6 +25,8 @@ const PropertyListing = () => {
   const [loadingReviews, setLoadingReviews] = useState(true);
   const [hasAcceptedBooking, setHasAcceptedBooking] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const { addToCart } = useCart();
+  const bookingId = searchParams.get('bookingId');
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -178,7 +181,8 @@ const PropertyListing = () => {
       const reviewData = {
         propertyId: id,
         rating: review.rating,
-        comment: review.comment
+        comment: review.comment,
+        bookingId: bookingId
       };
 
       await reviewService.createReview(reviewData);
@@ -226,7 +230,7 @@ const PropertyListing = () => {
         {/* Property Images */}
         <div className="space-y-4">
           <img
-            src={listing.photos?.[0] ? `data:image/jpeg;base64,${listing.photos[0]}` : '/placeholder.jpg'}
+            src={listing.photos?.[0] ? listing.photos[0] : '/placeholder.jpg'}
             alt={listing.title}
             className="w-full h-64 object-cover rounded-t-lg"
           />
@@ -234,7 +238,7 @@ const PropertyListing = () => {
             {listing.photos?.slice(1, 3).map((photo, index) => (
               <img
                 key={index}
-                src={`data:image/jpeg;base64,${photo}`}
+                src={photo}
                 alt={`${listing.title} - ${index + 2}`}
                 className="w-1/2 h-32 object-cover"
               />
@@ -375,6 +379,16 @@ const PropertyListing = () => {
                     Book Now
                   </button>
                 </div>
+                <button
+                  type="button"
+                  className="ml-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                  onClick={() => {
+                    addToCart(listing, bookingDates.checkIn, bookingDates.checkOut, bookingDates.guests);
+                    alert('Added to cart!');
+                  }}
+                >
+                  Add to Cart
+                </button>
               </form>
             </div>
           )}

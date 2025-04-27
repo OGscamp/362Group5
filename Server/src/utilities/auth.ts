@@ -89,7 +89,7 @@ export class Auth {
         console.log('Decoded token:', decoded);
         
         const users = mongo.notAirBnbDB.collection('users');
-        const user = await users.findOne({ username: decoded.userId });
+        const user = await users.findOne({ _id: new ObjectId(decoded.userId) });
         
         if (!user) {
           res.status(401).json({ error: 'User not found' });

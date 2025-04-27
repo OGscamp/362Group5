@@ -5,9 +5,10 @@ import { Cart, CartItem } from './cart-model';
 export class CartController {
   static async getCart(req: express.Request, res: express.Response): Promise<void> {
     try {
-      const userId = (req as any).user?.username;
+      const userId = (req as any).user?._id || (req as any).user?.username;
       const mongo = MongoConn.getInstance();
-      const collection = mongo.notAirBnbDB.db("notairbnb").collection<Cart>('cart');
+      if (!mongo.notAirBnbDB) throw new Error('Database not connected');
+      const collection = mongo.notAirBnbDB.collection<Cart>('cart');
 
       const cart = await collection.findOne({ userId });
       res.status(200).json(cart || { userId, items: [] });
@@ -19,11 +20,12 @@ export class CartController {
 
   static async addToCart(req: express.Request, res: express.Response): Promise<void> {
     try {
-      const userId = (req as any).user?.username;
+      const userId = (req as any).user?._id || (req as any).user?.username;
       const item: CartItem = req.body.item;
 
       const mongo = MongoConn.getInstance();
-      const collection = mongo.notAirBnbDB.db("notairbnb").collection<Cart>('cart');
+      if (!mongo.notAirBnbDB) throw new Error('Database not connected');
+      const collection = mongo.notAirBnbDB.collection<Cart>('cart');
 
       let result = await collection.updateOne(
         { userId },
@@ -40,11 +42,12 @@ export class CartController {
 
   static async removeFromCart(req: express.Request, res: express.Response): Promise<void> {
     try {
-      const userId = (req as any).user?.username;
+      const userId = (req as any).user?._id || (req as any).user?.username;
       const itemId: string = req.body.itemId;
 
       const mongo = MongoConn.getInstance();
-      const collection = mongo.notAirBnbDB.db("notairbnb").collection<Cart>('cart');
+      if (!mongo.notAirBnbDB) throw new Error('Database not connected');
+      const collection = mongo.notAirBnbDB.collection<Cart>('cart');
 
       let result = await collection.updateOne(
         { userId },
@@ -66,9 +69,10 @@ export class CartController {
 
   static async clearCart(req: express.Request, res: express.Response): Promise<void> {
     try {
-      const userId = (req as any).user?.username;
+      const userId = (req as any).user?._id || (req as any).user?.username;
       const mongo = MongoConn.getInstance();
-      const collection = mongo.notAirBnbDB.db("notairbnb").collection<Cart>('cart');
+      if (!mongo.notAirBnbDB) throw new Error('Database not connected');
+      const collection = mongo.notAirBnbDB.collection<Cart>('cart');
 
       await collection.updateOne(
         { userId },

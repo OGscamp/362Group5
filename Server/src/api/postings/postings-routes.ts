@@ -13,10 +13,10 @@ export class PostingRoutes {
 
     // Protected routes (require authentication)
     router.route('/api/properties')
-      .post(Auth.protected, PostingController.createPosting);
+      .post(Auth.verifyUser, PostingController.createPosting);
 
     router.route('/api/properties/:id')
-      .put(Auth.protected, PostingController.updatePosting)
-      .delete(Auth.protected, PostingController.deletePosting);
+      .put(Auth.verifyUser, PostingController.updatePosting)
+      .delete(Auth.verifyUser, PostingController.deletePosting);
   }
 }

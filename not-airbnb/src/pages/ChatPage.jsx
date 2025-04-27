@@ -1,94 +1,97 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useData } from '../context/DataContext';
+import { chatService, bookingService } from '../services/api';
 import { PaperAirplaneIcon, UserIcon } from '@heroicons/react/24/solid';
+import { useLocation } from 'react-router-dom';
 
 const ChatPage = () => {
   const { user } = useAuth();
-  const { listings, setListings } = useData();
-  const [selectedChat, setSelectedChat] = useState(null);
+  const [users, setUsers] = useState([]); // List of users to chat with
+  const [selectedUser, setSelectedUser] = useState(null); // The user you are chatting with
+  const [messages, setMessages] = useState([]); // Messages with selected user
   const [message, setMessage] = useState('');
-  const [chats, setChats] = useState([]);
   const messagesEndRef = useRef(null);
+  const location = useLocation();
 
-  // Get all chats where user is either host or guest
+  // Parse query params for auto-select
   useEffect(() => {
-    const userChats = listings
-      .filter(listing => 
-        listing.host.email === user.email || // User is host
-        listing.bookings?.some(booking => booking.userId === user.id) // User is guest
-      )
-      .map(listing => ({
-        id: listing.id,
-        propertyTitle: listing.title,
-        hostEmail: listing.host.email,
-        hostName: listing.host.name,
-        messages: listing.messages || [],
-        lastMessage: listing.messages?.[listing.messages.length - 1] || null
-      }))
-      .sort((a, b) => {
-        if (!a.lastMessage && !b.lastMessage) return 0;
-        if (!a.lastMessage) return 1;
-        if (!b.lastMessage) return -1;
-        return new Date(b.lastMessage.timestamp) - new Date(a.lastMessage.timestamp);
-      });
+    const params = new URLSearchParams(location.search);
+    const userIdFromQuery = params.get('userId');
+    if (userIdFromQuery) {
+      // Try to find the user in the list
+      const found = users.find(u => u._id === userIdFromQuery);
+      if (found) {
+        setSelectedUser(found);
+      } else {
+        // If not found, create a placeholder user object
+        setSelectedUser({ _id: userIdFromQuery, username: userIdFromQuery });
+      }
+    }
+  }, [location.search, users]);
 
-    setChats(userChats);
-  }, [listings, user.email, user.id]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
+  // Fetch users to chat with based on bookings
   useEffect(() => {
-    scrollToBottom();
-  }, [selectedChat?.messages]);
-
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (!message.trim() || !selectedChat) return;
-
-    const newMessage = {
-      id: Date.now(),
-      text: message,
-      senderId: user.id,
-      senderEmail: user.email,
-      senderName: user.email.split('@')[0],
-      timestamp: new Date().toISOString()
+    const fetchChatUsers = async () => {
+      try {
+        const bookings = await bookingService.getBookings();
+        const chatUsersMap = {};
+        bookings.forEach(booking => {
+          if (booking.status === 'accepted') {
+            // If current user is guest, add host
+            if (booking.userId === user._id || booking.userId === user.username) {
+              if (booking.property?.userId && booking.property.userId !== user._id && booking.property.userId !== user.username) {
+                chatUsersMap[booking.property.userId] = { _id: booking.property.userId, username: booking.property.userId };
+              }
+            }
+            // If current user is host, add guest
+            if (
+              (booking.property?.userId === user._id || booking.property?.userId === user.username) &&
+              booking.userId !== user._id && booking.userId !== user.username
+            ) {
+              chatUsersMap[booking.userId] = { _id: booking.userId, username: booking.userId };
+            }
+          }
+        });
+        setUsers(Object.values(chatUsersMap));
+      } catch (err) {
+        setUsers([]);
+      }
     };
+    if (user) fetchChatUsers();
+  }, [user]);
 
-    // Update the listing with the new message
-    const updatedListings = listings.map(listing => {
-      if (listing.id === selectedChat.id) {
-        return {
-          ...listing,
-          messages: [...(listing.messages || []), newMessage]
-        };
+  // Fetch messages when a user is selected
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (selectedUser) {
+        try {
+          const response = await chatService.getMessages(selectedUser._id);
+          setMessages(response.data || response || []);
+        } catch (err) {
+          setMessages([]);
+        }
       }
-      return listing;
-    });
+    };
+    fetchMessages();
+  }, [selectedUser]);
 
-    setListings(updatedListings);
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-    // Update local state
-    setChats(chats.map(chat => {
-      if (chat.id === selectedChat.id) {
-        return {
-          ...chat,
-          messages: [...(chat.messages || []), newMessage],
-          lastMessage: newMessage
-        };
-      }
-      return chat;
-    }));
-
-    setSelectedChat({
-      ...selectedChat,
-      messages: [...(selectedChat.messages || []), newMessage],
-      lastMessage: newMessage
-    });
-
-    setMessage('');
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!message.trim() || !selectedUser) return;
+    try {
+      await chatService.sendMessage({ receiverId: selectedUser._id, message });
+      setMessage('');
+      // Refresh messages
+      const response = await chatService.getMessages(selectedUser._id);
+      setMessages(response.data || response || []);
+    } catch (err) {
+      // Optionally show error
+    }
   };
 
   const formatTimestamp = (timestamp) => {
@@ -99,30 +102,22 @@ const ChatPage = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Chat List */}
+        {/* User List */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow-md p-4">
-            <h2 className="text-xl font-semibold mb-4">Messages</h2>
+            <h2 className="text-xl font-semibold mb-4">Users</h2>
             <div className="space-y-2">
-              {chats.map(chat => (
+              {users.map(u => (
                 <button
-                  key={chat.id}
-                  onClick={() => setSelectedChat(chat)}
+                  key={u._id}
+                  onClick={() => setSelectedUser(u)}
                   className={`w-full text-left p-3 rounded-lg transition-colors ${
-                    selectedChat?.id === chat.id
+                    selectedUser?._id === u._id
                       ? 'bg-rose-50 text-rose-700'
                       : 'hover:bg-gray-50'
                   }`}
                 >
-                  <div className="font-medium">{chat.propertyTitle}</div>
-                  <div className="text-sm text-gray-500">
-                    {chat.hostEmail === user.email ? 'Guest' : 'Host'}: {chat.hostEmail === user.email ? 'Guest' : chat.hostName}
-                  </div>
-                  {chat.lastMessage && (
-                    <div className="text-sm text-gray-600 truncate">
-                      {chat.lastMessage.senderEmail === user.email ? 'You' : chat.lastMessage.senderName}: {chat.lastMessage.text}
-                    </div>
-                  )}
+                  <div className="font-medium">{u.username}</div>
                 </button>
               ))}
             </div>
@@ -132,26 +127,23 @@ const ChatPage = () => {
         {/* Chat Window */}
         <div className="lg:col-span-3">
           <div className="bg-white rounded-lg shadow-md h-[600px] flex flex-col">
-            {selectedChat ? (
+            {selectedUser ? (
               <>
                 <div className="p-4 border-b">
-                  <h3 className="text-lg font-semibold">{selectedChat.propertyTitle}</h3>
-                  <p className="text-sm text-gray-500">
-                    {selectedChat.hostEmail === user.email ? 'Guest' : 'Host'}: {selectedChat.hostEmail === user.email ? 'Guest' : selectedChat.hostName}
-                  </p>
+                  <h3 className="text-lg font-semibold">Chat with {selectedUser.username}</h3>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {selectedChat.messages?.map(msg => (
+                  {messages.map((msg, idx) => (
                     <div
-                      key={msg.id}
+                      key={msg._id || idx}
                       className={`flex ${
-                        msg.senderEmail === user.email ? 'justify-end' : 'justify-start'
+                        msg.senderId === user._id ? 'justify-end' : 'justify-start'
                       }`}
                     >
                       <div
                         className={`max-w-[70%] rounded-lg p-3 ${
-                          msg.senderEmail === user.email
+                          msg.senderId === user._id
                             ? 'bg-rose-500 text-white'
                             : 'bg-gray-100 text-gray-900'
                         }`}
@@ -159,10 +151,10 @@ const ChatPage = () => {
                         <div className="flex items-center space-x-2 mb-1">
                           <UserIcon className="h-4 w-4" />
                           <span className="text-sm font-medium">
-                            {msg.senderEmail === user.email ? 'You' : msg.senderName}
+                            {msg.senderId === user._id ? 'You' : selectedUser.username}
                           </span>
                         </div>
-                        <p>{msg.text}</p>
+                        <p>{msg.message}</p>
                         <span className="text-xs opacity-75 mt-1 block">
                           {formatTimestamp(msg.timestamp)}
                         </span>
@@ -192,7 +184,7 @@ const ChatPage = () => {
               </>
             ) : (
               <div className="flex-1 flex items-center justify-center text-gray-500">
-                Select a chat to start messaging
+                Select a user to start messaging
               </div>
             )}
           </div>

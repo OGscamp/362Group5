@@ -1,10 +1,13 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'https://not-airbnb-backend-f2c07d2690e1.herokuapp.com/api';
 
 const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
 
 // Add request interceptor to include token in headers
@@ -18,7 +21,16 @@ api.interceptors.request.use((config) => {
 
 // Add response interceptor for error handling
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Handle successful responses
+    if (response.data && response.data.error) {
+      return Promise.reject({
+        error: response.data.error,
+        status: response.status
+      });
+    }
+    return response;
+  },
   (error) => {
     if (error.response) {
       // The request was made and the server responded with a status code
@@ -78,26 +90,72 @@ export const propertyService = {
 
   createProperty: async (propertyData) => {
     try {
-      console.log('Creating new property:', propertyData);
-      const response = await api.post('/properties', propertyData, {
+      console.log('Creating property with data:', propertyData);
+      const formData = new FormData();
+      
+      // Append text fields
+      formData.append('title', propertyData.title);
+      formData.append('description', propertyData.description);
+      formData.append('price', propertyData.price);
+      formData.append('location', propertyData.location);
+      formData.append('username', propertyData.userId);
+      
+      // Append photos
+      if (propertyData.photos && propertyData.photos.length > 0) {
+        propertyData.photos.forEach((photo, index) => {
+          formData.append('photos', photo);
+        });
+      }
+
+      const response = await api.post('/properties', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
-      console.log('Property created successfully:', response.data);
+
+      if (response.data.error) {
+        throw new Error(response.data.error);
+      }
+
       return { success: true, ...response.data };
     } catch (error) {
-      console.error('Error creating property:', error);
-      return { 
-        success: false, 
-        error: error.response?.data?.error || 'Failed to create property' 
-      };
+      console.error('Error in createProperty:', error);
+      if (error.response) {
+        throw error.response;
+      }
+      throw error;
     }
   },
 
   updateProperty: async (id, propertyData) => {
-    const response = await api.put(`/properties/${id}`, propertyData);
-    return response.data;
+    try {
+      console.log('Updating property:', propertyData);
+      
+      const formData = new FormData();
+      
+      // Append text fields
+      formData.append('title', propertyData.title);
+      formData.append('description', propertyData.description);
+      formData.append('price', propertyData.price);
+      formData.append('location', propertyData.location);
+      
+      // Append photos if they exist
+      if (propertyData.photos) {
+        propertyData.photos.forEach(photo => {
+          formData.append('photos', photo);
+        });
+      }
+
+      const response = await api.put(`/properties/${id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating property:', error);
+      throw error;
+    }
   },
 
   deleteProperty: async (id) => {
@@ -168,6 +226,11 @@ export const bookingService = {
   deleteBooking: async (id) => {
     const response = await api.delete(`/bookings/${id}`);
     return response.data;
+  },
+
+  cancelBookingRequest: async (id) => {
+    const response = await api.delete(`/bookings/${id}/cancel`);
+    return response.data;
   }
 };
 
@@ -182,24 +245,33 @@ export const reviewService = {
 };
 
 export const chatService = {
-  getMessages: (userId) => api.get(`/chat/history?userId=${userId}`),
-  sendMessage: (message) => api.post('/chat/send', message),
+  getMessages: (otherUserId) => api.get(`/chat/${otherUserId}`),
+  sendMessage: (message) => api.post('/chat', message),
 };
 
 export const authService = {
   login: async (credentials) => {
-    const response = await api.post('/auth/login', credentials);
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
+    try {
+      console.log('Sending login request with credentials:', credentials);
+      const response = await api.post('/auth/login', credentials);
+      console.log('Login response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
     }
-    return response;
   },
 
   register: (userData) => api.post('/auth/register', userData),
 
   logout: async () => {
-    localStorage.removeItem('token');
-    return api.post('/auth/logout');
+    try {
+      const response = await api.post('/auth/logout');
+      return response.data;
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw error;
+    }
   },
 
   getCurrentUser: () => api.get('/auth/me'),
@@ -259,4 +331,32 @@ export const paymentService = {
       throw error;
     }
   }
-}; 
+};
+
+export const cartService = {
+  getCart: async () => {
+    const response = await api.get('/cart');
+    return response.data;
+  },
+  addToCart: async (item) => {
+    const response = await api.post('/cart', { item });
+    return response.data;
+  },
+  removeFromCart: async (itemId) => {
+    const response = await api.post('/cart/remove', { itemId });
+    return response.data;
+  },
+  clearCart: async () => {
+    const response = await api.delete('/cart');
+    return response.data;
+  }
+};
+
+export const mailboxService = {
+  sendMessage: (to, subject, body, bookingId) =>
+    api.post('/mailbox/send', { to, subject, body, bookingId }),
+  getInbox: () => api.get('/mailbox/inbox'),
+  getSent: () => api.get('/mailbox/sent'),
+};
+
+export default api; 

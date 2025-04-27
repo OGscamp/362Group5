@@ -7,7 +7,6 @@ import cors from 'cors';
 import multer from 'multer';
 
 import { ExampleRoutes } from '../api/example/example-routes';
-import { LoginRoutes } from '../api/login/login-routes';
 import { CartRoutes } from '../api/cart/cart-routes';
 import { PostingRoutes } from '../api/postings/postings-routes';
 import { ReviewRoutes } from '../api/review/review-routes';
@@ -18,14 +17,17 @@ import propertyRoutes from '../api/properties/property-routes';
 import { randomUUID } from 'crypto';
 import { reviewRoutes } from '../api/reviews/review-routes';
 import { MongoConn } from '../utilities/mongo-connect';
-import { LoginController } from '../api/login/login-controller';
 import { v2 as cloudinary } from 'cloudinary';
+import authRoutes from '../api/auth/auth-routes';
+import supportRoutes from './support';
+import mailboxRoutes from './mailbox';
+import { getDb } from '../utilities/mongo';
 
 const router = express.Router();
 
 // Configure CORS
 router.use(cors({
-  origin: ['http://localhost:3001', 'http://localhost:5173'],
+  origin: ['https://elaborate-yeot-7e93c3.netlify.app', 'http://localhost:5173'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -67,8 +69,8 @@ router.get('/debug/db', async (req, res) => {
   }
 });
 
-// Initialize login routes
-LoginRoutes.init(router);
+// Register auth routes at /api/auth
+router.use('/auth', authRoutes);
 
 // Property routes
 router.get('/properties', PropertyController.getAllProperties);
@@ -79,12 +81,6 @@ router.put('/properties/:id', Auth.verifyUser, PropertyController.updateProperty
 router.delete('/properties/:id', Auth.verifyUser, PropertyController.deleteProperty);
 router.post('/properties/:id/photos', Auth.verifyUser, upload.array('photos', 10), PropertyController.updatePropertyPhotos);
 router.get('/properties/user/:userId', Auth.verifyUser, PropertyController.getPropertiesByUserId);
-
-// Login routes
-router.post('/auth/login', LoginController.login);
-router.post('/auth/register', LoginController.register);
-router.post('/auth/logout', LoginController.logout);
-router.get('/auth/me', Auth.verifyUser, LoginController.getCurrentUser);
 
 // Chat routes
 router.post('/chat', Auth.verifyUser, ChatController.sendMessage);
@@ -107,6 +103,26 @@ router.delete('/bookings/:id', Auth.verifyUser, BookingController.deleteBooking)
 
 // Payment routes
 router.use('/payments', paymentRouter);
+
+// Register support ticket routes
+router.use('/support', supportRoutes);
+
+// Register mailbox routes
+router.use('/mailbox', mailboxRoutes);
+
+// Register cart routes
+CartRoutes.init(router);
+
+// Add a route to get all users (for mailbox username mapping)
+router.get('/users', async (req, res) => {
+  try {
+    const db = await getDb();
+    const users = await db.collection('users').find({}, { projection: { username: 1 } }).toArray();
+    res.json(users.map(u => ({ _id: u._id.toString(), username: u.username })));
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
 
 export default router;
 

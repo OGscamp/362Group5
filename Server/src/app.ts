@@ -10,14 +10,20 @@ const app = express();
 const router = express.Router();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['https://elaborate-yeot-7e93c3.netlify.app', 'http://localhost:5173'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  maxAge: 86400 // 24 hours
+}));
 app.use(express.json());
 
 // Initialize routes
 BookingRoutes.init(router);
 
 // Routes
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authRoutes);  // Mount auth routes at /api/auth
 app.use('/api/properties', propertyRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/payments', paymentsRouter);

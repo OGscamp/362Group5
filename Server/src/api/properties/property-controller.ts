@@ -52,7 +52,11 @@ export class PropertyController {
       const allProperties = await properties.find({}).toArray();
       
       console.log(`Found ${allProperties.length} properties`);
-      res.json(allProperties);
+      const mappedProperties = allProperties.map(property => ({
+        ...property,
+        photos: Array.isArray(property.photos) ? property.photos.map(photo => typeof photo === 'string' ? photo : photo.url) : []
+      }));
+      res.json(mappedProperties);
     } catch (error) {
       console.error('Error fetching properties:', error);
       res.status(500).json({ 
@@ -83,7 +87,11 @@ export class PropertyController {
       }
 
       console.log('Property found:', property);
-      res.json(property);
+      const mappedProperty = {
+        ...property,
+        photos: Array.isArray(property.photos) ? property.photos.map(photo => typeof photo === 'string' ? photo : photo.url) : []
+      };
+      res.json(mappedProperty);
     } catch (error) {
       console.error('Error fetching property:', error);
       res.status(500).json({ 
@@ -130,17 +138,23 @@ export class PropertyController {
       if (req.files && Array.isArray(req.files)) {
         const photoUrls = await Promise.all(
           (req.files as Express.Multer.File[]).map(async (file) => {
-            const result = await cloudinary.uploader.upload(file.buffer.toString('base64'), {
-              folder: 'not-airbnb/properties'
+            // Upload using buffer as a stream
+            const uploadResult = await new Promise((resolve, reject) => {
+              const stream = cloudinary.uploader.upload_stream(
+                { folder: 'not-airbnb/properties' },
+                (error, result) => {
+                  if (error) return reject(error);
+                  resolve(result);
+                }
+              );
+              stream.end(file.buffer);
             });
-            return {
-              url: result.secure_url,
-              publicId: result.public_id
-            };
+            // Type assertion for uploadResult
+            const url = (uploadResult as { secure_url: string }).secure_url;
+            return url;
           })
         );
-
-        // Update property with photo URLs
+        // Update property with photo URLs (array of strings)
         await properties.updateOne(
           { _id: result.insertedId },
           { $set: { photos: photoUrls } }
@@ -317,7 +331,11 @@ export class PropertyController {
 
       const results = await properties.find(searchQuery).toArray();
       console.log(`Found ${results.length} properties matching search criteria`);
-      res.json(results);
+      const mappedResults = results.map(property => ({
+        ...property,
+        photos: Array.isArray(property.photos) ? property.photos.map(photo => typeof photo === 'string' ? photo : photo.url) : []
+      }));
+      res.json(mappedResults);
     } catch (error) {
       console.error('Error searching properties:', error);
       res.status(500).json({ 
@@ -424,10 +442,13 @@ export class PropertyController {
       }
 
       const properties = mongo.notAirBnbDB.collection('properties');
-      const userProperties = await properties.find({ userId: user.email }).toArray(); // Changed from owner to userId with email
-      
-      console.log(`Found ${userProperties.length} properties for user ${user.email}`);
-      res.json(userProperties);
+      const userProperties = await properties.find({ userId: user.email }).toArray();
+      // Map photos to URLs
+      const mappedUserProperties = userProperties.map(property => ({
+        ...property,
+        photos: Array.isArray(property.photos) ? property.photos.map(photo => typeof photo === 'string' ? photo : photo.url) : []
+      }));
+      res.json(mappedUserProperties);
     } catch (error) {
       console.error('Error getting user properties:', error);
       res.status(500).json({ 
