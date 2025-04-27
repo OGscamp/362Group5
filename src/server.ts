@@ -12,7 +12,7 @@ export const app = express();
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:3001',
+  origin: 'https://elaborate-yeot-7e93c3.netlify.app',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
@@ -81,3 +81,5 @@ process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
   process.exit(1);
 });
+
+const PORT = process.env.PORT || 3000;
