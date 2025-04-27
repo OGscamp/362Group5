@@ -78,4 +78,4 @@
  6. System sucessfully books the property and sends a confirmation email.
  
  # Activity Diagram
- ![Logo](Group%205%20UML%20Software.jpg)
+ ![Logo](Group%205%20UML%20Software%20Updated.jpg)
