@@ -1,0 +1,31 @@
+{
+	"compilerOptions": {
+		"target": "es6",
+		"module": "commonjs",
+		"outDir": "./dist",
+		"rootDir": "./src",
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"moduleResolution": "node",
+		"sourceMap": true,
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"noImplicitAny": false,
+		"lib": [
+			"esnext"
+		]
+	},
+	"include": ["src/**/*"],
+	"exclude": [
+		"node_modules",
+		"typings",
+		"__tests__"
+	],
+	"filesGlob": [
+		"*/.ts",
+		"typings/main",
+		"typings/index.d.ts"
+	]
+}
