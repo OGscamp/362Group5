@@ -15,7 +15,8 @@
 		"noImplicitAny": false,
 		"lib": [
 			"esnext"
-		]
+		],
+		"noEmitOnError": false
 	},
 	"include": ["src/**/*"],
 	"exclude": [
