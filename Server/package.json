@@ -3,15 +3,14 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
     "test": "jest --config jest.config.js",
+    "build": "tsc",
     "test:coverage": "jest --coverage",
     "test:cart": "jest -t 'Cart Controller Full Coverage should return 401 when adding item to cart without auth' --detectOpenHandles"
   },
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Make sure you have [Node.js](https://nodejs.org/) installed on your machine.",
   "devDependencies": {
     "@types/cookie-parser": "^1.4.3",
     "@types/jest": "^29.5.14",
@@ -28,5 +27,6 @@
     "mongodb": "^6.15.0",
     "passport": "^0.7.0",
     "passport-custom": "^1.1.1"
-  }
+  },
+  "keywords": []
 }
